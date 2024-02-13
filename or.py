@@ -18,9 +18,8 @@ def activation_function(y):
 
 # Función para entrenar el perceptrón OR
 def train_perceptron():
-    # Inicializar pesos aleatorios
-    w = [random.random() for _ in range(4)]  # w0, w1, w2, w3
-    bias = 1
+    # Inicializar pesos aleatorios dentro del rango [-10, 10]
+    w = [random.randint(-10, 10) for _ in range(4)]  # w0, w1, w2, w3
 
     error = True
     while error:
