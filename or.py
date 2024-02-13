@@ -1,7 +1,7 @@
 import random
 
-# Tabla de verdad OR
-tabla_verdad = [
+# Definir la nueva tabla de verdad OR
+truth_table = [
     ([0, 0, 0, 1], 0),
     ([0, 0, 1, 1], 1),
     ([0, 1, 0, 1], 1),
@@ -12,27 +12,54 @@ tabla_verdad = [
     ([1, 1, 1, 1], 1)
 ]
 
-# Inicializar los pesos
-w = [random.random() for _ in range(4)]
-
 # Función de activación
-def activacion(y):
-    return 1 if y > 0 else 0 if y < 0 else 0
+def activation_function(y):
+    return 1 if y >= 0 else 0
 
-# Entrenamiento del perceptrón
-for _ in range(100):  # Número de épocas
-    for x, salida_esperada in tabla_verdad:
-        y = sum(xi * wi for xi, wi in zip(x, w))  # Función sumatoria
-        error = salida_esperada - activacion(y)  # Cálculo del error
-        if error != 0:  # Si hay error, actualizar los pesos
-            w = [wi + error * xi for xi, wi in zip(x, w)]
+# Función para entrenar el perceptrón OR
+def train_perceptron():
+    # Inicializar pesos aleatorios
+    w = [random.random() for _ in range(4)]  # w0, w1, w2, w3
+    bias = 1
 
-# Imprimir los pesos finales
+    error = True
+    while error:
+        error = False
+        for x_sample, y_desired in truth_table:
+            # Agregar bias a la entrada
+            x = x_sample
+
+            # Calcular la sumatoria
+            y = sum([w[i] * x[i] for i in range(4)])
+
+            # Aplicar función de activación
+            y = activation_function(y)
+
+            # Calcular error
+            error_calc = y_desired - y
+
+            # Actualizar pesos si hay error
+            if error_calc != 0:
+                error = True
+                for i in range(4):
+                    w[i] += error_calc * x[i]
+
+    return w
+
+# Probar el entrenamiento del perceptrón OR
+weights = train_perceptron()
 print("Pesos finales:")
-for i, wi in enumerate(w):
-    print(f"w{i}: {wi}")
+print(f"w0: {weights[0]}")
+print(f"w1: {weights[1]}")
+print(f"w2: {weights[2]}")
+print(f"w3: {weights[3]}")
 
-# Evaluar las entradas con los pesos finales
-for x, salida_esperada in tabla_verdad:
-    y = sum(xi * wi for xi, wi in zip(x, w))  # Función sumatoria
-    print(f"Entradas: {x[:-1]} Salida esperada: {salida_esperada} Suma ponderada: {y} Salida: {activacion(y)}")
+# Mostrar resultados para cada entrada
+for x_sample, y_desired in truth_table:
+    # Calcular la sumatoria
+    weighted_sum = sum([weights[i] * x_sample[i] for i in range(4)])
+
+    # Aplicar función de activación
+    y = activation_function(weighted_sum)
+
+    print(f"Entradas: {x_sample[:3]} Salida esperada: {y_desired} Suma ponderada: {weighted_sum} Salida: {y}")
