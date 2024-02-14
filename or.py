@@ -1,64 +1,96 @@
 import random
+import csv
 
-# Definir la nueva tabla de verdad OR
-truth_table = [
-    ([0, 0, 0, 1], 0),
-    ([0, 0, 1, 1], 1),
-    ([0, 1, 0, 1], 1),
-    ([0, 1, 1, 1], 1),
-    ([1, 0, 0, 1], 1),
-    ([1, 0, 1, 1], 1),
-    ([1, 1, 0, 1], 1),
-    ([1, 1, 1, 1], 1)
-]
 
-# Función de activación
-def activation_function(y):
-    return 1 if y >= 0 else 0
+class PerceptronO:
+    def __init__(self):
+        self.factores = [random.randint(-5, 5) for _ in range(3)]  # Factores aleatorios entre -5 y 5 para las tres entradas
+        self.bias = random.randint(-5, 5)  # Bias aleatorio entre -5 y 5
 
-# Función para entrenar el perceptrón OR
-def train_perceptron():
-    # Inicializar pesos aleatorios dentro del rango [-10, 10]
-    w = [random.randint(-10, 10) for _ in range(4)]  # w0, w1, w2, w3
+    def calcular(self, inputs):
+        suma_ponderada = sum(input * factor for input, factor in zip(inputs, self.factores)) + self.bias
+        output = 1 if suma_ponderada > 0 else 0
+        return suma_ponderada, output
 
-    error = True
-    while error:
-        error = False
-        for x_sample, y_desired in truth_table:
-            # Agregar bias a la entrada
-            x = x_sample
 
-            # Calcular la sumatoria
-            y = sum([w[i] * x[i] for i in range(4)])
+def testear_combinaciones(perceptron):
+    inputs = [
+        [0, 0, 0],
+        [0, 0, 1],
+        [0, 1, 0],
+        [0, 1, 1],
+        [1, 0, 0],
+        [1, 0, 1],
+        [1, 1, 0],
+        [1, 1, 1]
+    ]
+    output_esperado = [0, 1, 1, 1, 1, 1, 1, 1]  # Salidas esperadas para la compuerta OR
 
-            # Aplicar función de activación
-            y = activation_function(y)
+    iteracion = 0
+    while True:
+        iteracion += 1
+        print(f'\nIteración #{iteracion}')
+        print(f'w1={perceptron.factores[0]}\nw2={perceptron.factores[1]}\nw3={perceptron.factores[2]}\nSesgo={perceptron.bias}')
 
-            # Calcular error
-            error_calc = y_desired - y
+        todas_correctas = True  # Flag para verificar si todas las salidas son correctas
 
-            # Actualizar pesos si hay error
-            if error_calc != 0:
-                error = True
-                for i in range(4):
-                    w[i] += error_calc * x[i]
+        for input, output_esp in zip(inputs, output_esperado):
+            suma_ponderada, output = perceptron.calcular(input)
+            print(
+                f'Entradas: {input}, Salida esperada: {output_esp}, Suma ponderada: {suma_ponderada}, Salida: {output}')
 
-    return w
+            # Actualizar factores si la salida no coincide con la salida esperada
+            if output != output_esp:
+                todas_correctas = False
+                for i in range(3):
+                    perceptron.factores[i] = random.randint(-5, 5)
+                perceptron.bias = random.randint(-5, 5)
 
-# Probar el entrenamiento del perceptrón OR
-weights = train_perceptron()
-print("Pesos finales:")
-print(f"w0: {weights[0]}")
-print(f"w1: {weights[1]}")
-print(f"w2: {weights[2]}")
-print(f"w3: {weights[3]}")
+        if todas_correctas:
+            print("\nSolución:")
+            print(f'w1={perceptron.factores[0]}\nw2={perceptron.factores[1]}\nw3={perceptron.factores[2]}\nSesgo={perceptron.bias}')
+            guardar_solucion(perceptron)
+            return
 
-# Mostrar resultados para cada entrada
-for x_sample, y_desired in truth_table:
-    # Calcular la sumatoria
-    weighted_sum = sum([weights[i] * x_sample[i] for i in range(4)])
 
-    # Aplicar función de activación
-    y = activation_function(weighted_sum)
+def guardar_solucion(perceptron):
+    with open("solucion_o.csv", "w", newline='') as f:
+        writer = csv.writer(f)
+        writer.writerow([perceptron.factores[0], perceptron.factores[1], perceptron.factores[2], perceptron.bias])
 
-    print(f"Entradas: {x_sample[:3]} Salida esperada: {y_desired} Suma ponderada: {weighted_sum} Salida: {y}")
+
+def cargar_factores_desde_archivo():
+    try:
+        with open("solucion_o.csv", "r") as f:
+            reader = csv.reader(f)
+            factores = next(reader)
+            perceptron_o = PerceptronO()
+            perceptron_o.factores = [float(factor) for factor in factores]
+            return perceptron_o
+    except FileNotFoundError:
+        return None
+
+
+def evaluar_manualmente(perceptron):
+    while True:
+        opcion = input("¿Desea evaluar una entrada x1,x2,x3? (Si/No): ").capitalize()
+        if opcion == 'Si':
+            x1 = int(input("Ingrese x1: "))
+            x2 = int(input("Ingrese x2: "))
+            x3 = int(input("Ingrese x3: "))
+            suma_ponderada, salida = perceptron.calcular([x1, x2, x3])
+            print(f'Suma ponderada: {suma_ponderada}, Salida: {salida}')
+        elif opcion == 'No':
+            break
+        else:
+            print("Opción inválida. Por favor, seleccione 'Si' para sí o 'No' para no.")
+
+
+perceptron_o = cargar_factores_desde_archivo()
+
+if perceptron_o is None:
+    perceptron_o = PerceptronO()
+
+testear_combinaciones(perceptron_o)
+guardar_solucion(perceptron_o)
+evaluar_manualmente(perceptron_o)
